@@ -1,5 +1,5 @@
 # TODO: Change the name of the org
-org: sudkul
+org: kinggeorge1
 app: serverless-todo-app
 service: serverless-todo-app
 
@@ -11,7 +11,6 @@ plugins:
 provider:
   name: aws
   runtime: nodejs16.x
-  lambdaHashingVersion: "20201221"
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
 
@@ -24,7 +23,7 @@ provider:
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
     TODOS_CREATED_AT_INDEX: CreatedAtIndex
-    ATTACHMENT_S3_BUCKET: serverless-c4-todo-images-${self:provider.stage}
+    ATTACHMENT_S3_BUCKET: serverless-george-todo-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
   httpApi:
@@ -35,18 +34,18 @@ provider:
 package:
   individually: true
 
-  logs:
-    # Enable API Gateway logs
-    restApi: true
+  # logs:
+  #   # Enable API Gateway logs
+  #   restApi: true
 
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - xray:PutTelemetryRecords
-            - xray:PutTraceSegments
-          Resource: "*"
+  # iam:
+  #   role:
+  #     statements:
+  #       - Effect: Allow
+  #         Action:
+  #           - xray:PutTelemetryRecords
+  #           - xray:PutTraceSegments
+  #         Resource: "*"
 
 functions:
   Auth:
@@ -66,7 +65,7 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynanomodb: Query
+          - "dynamodb:Query"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function -
@@ -88,7 +87,7 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb: PutItem
+          - "dynamodb:PutItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function
@@ -103,12 +102,12 @@ functions:
           authorizer:
             name: Auth
           request:
-            schema:
+            schemas:
               application/json: ${file(models/update-todo-model.json)}
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb:UpdateItem
+          - "dynamodb:UpdateItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function
@@ -125,7 +124,7 @@ functions:
     iamRoleStatements:
       - Effect: Allow
         Action:
-          - dynamodb:DeleteItem
+          - "dynamodb:DeleteItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
   # TODO: Configure this function
@@ -141,10 +140,12 @@ functions:
             name: Auth
     iamRoleStatements:
       - Effect: Allow
-        Action: -s3:PutObject
+        Action:
+          - "s3:PutObject"
         Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
       - Effect: Allow
-        Action: -dynamodb:UpdateItem
+        Action:
+          - "dynamodb:UpdateItem"
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
 resources:
